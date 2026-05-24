@@ -1,0 +1,17 @@
+{
+  "short_name": "Zeetex Rate",
+  "name": "Zeetex Currency Rate",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/ahmad-bhai/zeetex-web-version/eeacd0aac8cf6ecae354bef8e1359f7c9e0fc7e1/platform_icon_1.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#0d0614",
+  "theme-color": "#800000",
+  "display": "standalone",
+  "orientation": "portrait"
+}
